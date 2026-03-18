@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chai — The VA Matchmaker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=Dancing+Script:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blush:  #fdeef5; --rose: #f8d4e5; --petal: #f2b3d0;
+  --hot: #e8178a; --deep: #b5096c; --cream: #fff8fb;
+  --white: #ffffff; --ink: #1e0f18; --mauve: #6b2f52;
+  --muted: #a05878; --border: #f0c8dd;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink); overflow-x: hidden; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.1rem 4rem;
+  background: rgba(255,248,251,0.92); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { font-family: 'Dancing Script', cursive; font-size: 1.9rem; color: var(--hot); display: flex; align-items: center; gap: 0.3rem; }
+.nav-logo .heart { animation: heartbeat 1.6s ease-in-out infinite; display: inline-block; }
+@keyframes heartbeat { 0%,100%{transform:scale(1);} 15%{transform:scale(1.25);} 30%{transform:scale(1);} 45%{transform:scale(1.15);} 60%{transform:scale(1);} }
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a { font-size: 0.8rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--mauve); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--hot); }
+.nav-cta { background: var(--hot); color: white; border: none; padding: 0.65rem 1.8rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; cursor: pointer; box-shadow: 0 6px 22px rgba(232,23,138,0.3); transition: background 0.2s, transform 0.15s; }
+.nav-cta:hover { background: var(--deep); transform: translateY(-1px); }
+
+/* ── HERO (STEP 1 — ATTENTION) ── */
+.hero {
+  min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center; padding: 7rem 4rem 4rem; gap: 3rem;
+  position: relative; overflow: hidden;
+}
+.hero::before { content: ''; position: absolute; width: 680px; height: 680px; background: radial-gradient(circle, rgba(242,179,208,0.38) 0%, transparent 68%); top: -80px; right: -80px; border-radius: 50%; pointer-events: none; }
+.hero::after  { content: ''; position: absolute; width: 360px; height: 360px; background: radial-gradient(circle, rgba(248,212,229,0.32) 0%, transparent 68%); bottom: 40px; left: -60px; border-radius: 50%; pointer-events: none; opacity: 0.6; }
+.hero-grid { position: absolute; inset: 0; pointer-events: none; opacity: 0.035; background-image: linear-gradient(var(--hot) 1px, transparent 1px), linear-gradient(90deg, var(--hot) 1px, transparent 1px); background-size: 56px 56px; }
+.hearts-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hb { position: absolute; opacity: 0.06; animation: floatHeart linear infinite; }
+.hb:nth-child(1){left:5%;animation-duration:12s;font-size:1.2rem;}
+.hb:nth-child(2){left:18%;animation-duration:15s;animation-delay:2s;font-size:1rem;}
+.hb:nth-child(3){left:32%;animation-duration:11s;animation-delay:4s;font-size:0.8rem;}
+.hb:nth-child(4){left:55%;animation-duration:14s;animation-delay:1s;font-size:1rem;}
+.hb:nth-child(5){left:72%;animation-duration:13s;animation-delay:3s;font-size:1.3rem;}
+.hb:nth-child(6){left:88%;animation-duration:16s;animation-delay:5s;font-size:0.9rem;}
+@keyframes floatHeart { 0%{transform:translateY(110vh);opacity:0;} 10%{opacity:0.06;} 90%{opacity:0.06;} 100%{transform:translateY(-10vh);opacity:0;} }
+.hero-text { position: relative; z-index: 2; }
+.app-badge { display: inline-flex; align-items: center; gap: 0.6rem; background: var(--rose); border: 1.5px solid var(--petal); padding: 0.38rem 1rem; border-radius: 50px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--hot); margin-bottom: 1.4rem; animation: fadeUp 0.6s ease both; }
+.pulse-dot { width: 7px; height: 7px; background: var(--hot); border-radius: 50%; animation: pulse 1.8s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.4;transform:scale(0.65);} }
+.hero-h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.8rem, 5vw, 4.4rem); font-weight: 900; line-height: 1.06; color: var(--ink); animation: fadeUp 0.7s 0.08s ease both; }
+.hero-h1 em { font-style: italic; color: var(--hot); }
+.hero-tagline { margin-top: 1.1rem; font-family: 'Dancing Script', cursive; font-size: 1.35rem; color: var(--mauve); animation: fadeUp 0.7s 0.14s ease both; }
+.hero-sub { margin-top: 1rem; font-size: 1rem; line-height: 1.78; color: var(--mauve); font-weight: 300; max-width: 460px; animation: fadeUp 0.7s 0.2s ease both; }
+.match-meter { display: flex; align-items: center; gap: 0.8rem; margin-top: 1.6rem; animation: fadeUp 0.7s 0.25s ease both; }
+.mm-label { font-size: 0.78rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
+.mm-bar { flex: 1; max-width: 160px; height: 8px; background: var(--rose); border-radius: 50px; overflow: hidden; }
+.mm-fill { height: 100%; background: linear-gradient(90deg, var(--petal), var(--hot)); border-radius: 50px; width: 0; animation: fillBar 1.8s 0.8s ease forwards; }
+@keyframes fillBar { to{width:94%;} }
+.mm-pct { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--hot); }
+.hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; animation: fadeUp 0.7s 0.3s ease both; }
+.btn-hot { background: var(--hot); color: white; border: none; padding: 1rem 2.4rem; border-radius: 50px; font-size: 0.95rem; font-weight: 600; cursor: pointer; box-shadow: 0 10px 32px rgba(232,23,138,0.3); transition: background 0.2s, transform 0.15s, box-shadow 0.2s; }
+.btn-hot:hover { background: var(--deep); transform: translateY(-3px); box-shadow: 0 16px 42px rgba(232,23,138,0.42); }
+.btn-ghost { background: transparent; color: var(--hot); border: 2px solid var(--petal); padding: 1rem 2rem; border-radius: 50px; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.btn-ghost:hover { border-color: var(--hot); background: var(--blush); }
+
+/* photo side */
+.hero-visual { position: relative; z-index: 2; display: flex; justify-content: center; animation: fadeUp 0.8s 0.12s ease both; }
+.photo-card { position: relative; width: 320px; }
+.photo-frame { width: 100%; aspect-ratio: 3/4; border-radius: 28px; overflow: hidden; border: 5px solid white; box-shadow: 0 24px 64px rgba(232,23,138,0.16); background: linear-gradient(145deg, var(--rose), var(--petal)); }
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+.profile-overlay { position: absolute; bottom: -16px; left: 50%; transform: translateX(-50%); background: white; border-radius: 20px; padding: 1rem 1.5rem; box-shadow: 0 12px 40px rgba(232,23,138,0.18); border: 1.5px solid var(--border); width: calc(100% - 20px); z-index: 3; display: flex; align-items: center; justify-content: space-between; }
+.po-name { font-family: 'Dancing Script', cursive; font-size: 1.3rem; color: var(--ink); font-weight: 700; }
+.po-title { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.1rem; }
+.po-actions { display: flex; gap: 0.6rem; }
+.po-btn { width: 38px; height: 38px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: transform 0.15s; }
+.po-btn.pass { background: #f5f5f5; color: #999; }
+.po-btn.like { background: var(--hot); color: white; box-shadow: 0 4px 16px rgba(232,23,138,0.35); }
+.po-btn:hover { transform: scale(1.12); }
+.float-tag { position: absolute; background: white; border: 2px solid var(--border); border-radius: 50px; padding: 0.42rem 1.05rem; box-shadow: 0 6px 20px rgba(232,23,138,0.12); white-space: nowrap; display: flex; align-items: center; gap: 0.45rem; }
+.ft-arrow { font-family: 'Dancing Script', cursive; font-size: 0.95rem; color: var(--hot); }
+.ft-label { font-family: 'Dancing Script', cursive; font-size: 1rem; color: var(--mauve); font-weight: 600; }
+.float-stat { position: absolute; background: white; border: 2px solid var(--border); border-radius: 18px; padding: 0.6rem 1.1rem; box-shadow: 0 6px 20px rgba(232,23,138,0.12); white-space: nowrap; display: flex; flex-direction: column; align-items: center; }
+.fs-num { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 900; color: var(--hot); line-height: 1; }
+.fs-lbl { font-family: 'Dancing Script', cursive; font-size: 0.8rem; color: var(--mauve); margin-top: 0.1rem; }
+.ft1  { top: 7%;  left: -72px; animation: floatA 3.1s ease-in-out infinite; }
+.ft2  { bottom: 26%; left: -68px; animation: floatA 2.9s 0.5s ease-in-out infinite; }
+.fst1 { top: 22%; right: -80px; animation: floatB 3.7s ease-in-out infinite; }
+.fst2 { top: 46%; right: -84px; animation: floatB 3.4s 0.3s ease-in-out infinite; }
+.fst3 { top: 68%; right: -76px; animation: floatA 3.2s 0.7s ease-in-out infinite; }
+@keyframes floatA { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+@keyframes floatB { 0%,100%{transform:translateY(0);} 50%{transform:translateY(10px);} }
+
+/* ── TICKER ── */
+.ticker { background: var(--hot); padding: 0.88rem 0; overflow: hidden; white-space: nowrap; }
+.ticker-inner { display: inline-flex; animation: tickerRun 28s linear infinite; }
+.ticker-item { display: inline-flex; align-items: center; gap: 0.75rem; color: white; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; padding: 0 2.8rem; }
+.t-star { color: rgba(255,255,255,0.45); font-size: 0.55rem; }
+@keyframes tickerRun { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+
+/* ── SECTION BASE ── */
+section { padding: 6rem 4rem; }
+.s-label { font-family: 'Dancing Script', cursive; font-size: 1.3rem; color: var(--hot); display: block; margin-bottom: 0.55rem; }
+.s-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3.8vw, 3.1rem); font-weight: 900; line-height: 1.12; color: var(--ink); }
+.s-title em { font-style: italic; color: var(--hot); }
+.s-body { font-size: 0.95rem; line-height: 1.78; color: var(--mauve); font-weight: 300; margin-top: 0.9rem; max-width: 580px; }
+
+/* ── STEP 2 — PAIN AGITATION ── */
+.pain { background: white; }
+.pain-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; margin-top: 3rem; }
+.pain-list { display: flex; flex-direction: column; gap: 0.8rem; }
+.pain-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.95rem 1.2rem; border-radius: 14px;
+  border: 1.5px solid var(--border); background: var(--cream);
+  font-size: 0.9rem; color: var(--mauve); font-weight: 300;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: default;
+}
+.pain-item:hover { border-color: var(--petal); background: var(--blush); }
+.pain-check {
+  width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%;
+  background: var(--rose); border: 2px solid var(--petal);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--hot);
+}
+.pain-close {
+  background: linear-gradient(135deg, var(--hot), var(--deep));
+  border-radius: 24px; padding: 2.5rem; color: white;
+  position: relative; overflow: hidden;
+}
+.pain-close::before { content: ''; position: absolute; width: 280px; height: 280px; border: 50px solid rgba(255,255,255,0.07); border-radius: 50%; top: -80px; right: -80px; }
+.pc-script { font-family: 'Dancing Script', cursive; font-size: 1.2rem; color: rgba(255,255,255,0.7); display: block; margin-bottom: 0.5rem; }
+.pc-h { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 900; line-height: 1.15; margin-bottom: 1rem; position: relative; z-index: 1; }
+.pc-p { font-size: 0.88rem; line-height: 1.72; color: rgba(255,255,255,0.85); font-weight: 300; position: relative; z-index: 1; }
+
+/* ── STEP 3 — SCROLL LETTER (Interest) ── */
+/* ── ENVELOPE LETTER ── */
+.letter-section { background: var(--cream); padding: 6rem 4rem; }
+.letter-section-head { text-align: center; max-width: 500px; margin: 0 auto 3rem; }
+.env-container { max-width: 560px; margin: 0 auto; }
+
+/* sealed envelope — compact banner style */
+.env-sealed {
+  cursor: pointer; position: relative;
+  transition: transform 0.2s, filter 0.2s;
+  filter: drop-shadow(0 8px 24px rgba(232,23,138,0.16));
+}
+.env-sealed:hover { transform: translateY(-4px); filter: drop-shadow(0 14px 36px rgba(232,23,138,0.26)); }
+
+/* envelope body — short banner height */
+.env-body {
+  width: 100%; background: linear-gradient(145deg, var(--rose), #f5c5db);
+  border-radius: 14px; position: relative; overflow: hidden;
+  border: 2px solid var(--petal);
+  padding-bottom: 0;
+  display: flex; align-items: center; min-height: 80px;
+}
+
+/* top flap — shallow chevron */
+.env-flap {
+  width: 100%; position: absolute; top: 0; left: 0; z-index: 2;
+}
+.env-flap svg { display: block; width: 100%; }
+
+/* heart wax seal */
+.env-seal {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 44px; height: 44px; z-index: 10;
+  transition: transform 0.4s ease;
+}
+.env-sealed:hover .env-seal { transform: translate(-50%, -50%) scale(1.12) rotate(-5deg); }
+.env-seal-circle {
+  width: 44px; height: 44px; background: radial-gradient(circle at 35% 35%, #ff4db8, var(--deep));
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: white; border: 3px solid white;
+  box-shadow: 0 4px 14px rgba(232,23,138,0.55), 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* letter lines preview — horizontal inside banner */
+.env-lines {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0 3rem 0 2rem; width: 100%; position: relative; z-index: 1;
+  flex-wrap: wrap;
+}
+.env-line {
+  height: 8px; background: rgba(255,255,255,0.5);
+  border-radius: 4px; flex-shrink: 0;
+}
+.env-line:nth-child(1){ width: 60px; }
+.env-line:nth-child(2){ width: 100px; }
+.env-line:nth-child(3){ width: 80px; }
+.env-line:nth-child(4){ width: 70px; }
+
+/* envelope label inside banner */
+.env-banner-label {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  font-family: 'Dancing Script', cursive; font-size: 1.2rem; color: #7a3a5a;
+  white-space: nowrap; z-index: 3; pointer-events: none;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.6);
+}
+
+.env-hint {
+  font-family: 'Dancing Script', cursive; font-size: 1rem; color: var(--muted);
+  margin-top: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  animation: bob 2s ease-in-out infinite;
+}
+@keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+
+/* open letter */
+.env-letter { display: none; }
+.env-letter.open { display: block; animation: letterRise 0.6s cubic-bezier(0.34,1.1,0.64,1) both; }
+@keyframes letterRise {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* open envelope shell stays above */
+.env-open-shell {
+  display: none; position: relative; margin-bottom: -24px; z-index: 3;
+}
+.env-open-shell.show { display: block; }
+.env-open-body-bg {
+  background: linear-gradient(145deg, var(--rose), #f5c5db);
+  border: 2px solid var(--petal); border-top: none;
+  border-radius: 0 0 12px 12px; height: 48px;
+}
+/* flap open animation */
+.env-flap-open {
+  width: 100%; transform-origin: top center; position: relative; z-index: 4;
+  animation: openFlap 0.5s ease both;
+}
+.env-flap-open svg { display: block; width: 100%; }
+@keyframes openFlap {
+  from { transform: rotateX(0deg);   opacity: 1; }
+  to   { transform: rotateX(-160deg); opacity: 0.3; }
+}
+
+/* letter paper */
+.letter-paper {
+  background: linear-gradient(180deg, #fffef8 0%, #fffbf0 50%, #fffef8 100%);
+  border-radius: 12px; padding: 2.5rem 2.8rem;
+  border: 1.5px solid rgba(220,200,150,0.4);
+  box-shadow: 0 4px 24px rgba(180,140,60,0.12), 0 1px 4px rgba(0,0,0,0.06);
+  position: relative;
+}
+/* lined paper effect */
+.letter-paper::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; border-radius: 12px;
+  background-image: repeating-linear-gradient(
+    transparent, transparent 31px,
+    rgba(180,140,60,0.07) 31px, rgba(180,140,60,0.07) 32px
+  );
+}
+/* left margin */
+.letter-paper::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 2rem; width: 1px;
+  background: rgba(220,170,80,0.2); pointer-events: none;
+}
+
+.letter-greeting { font-family: 'Dancing Script', cursive; font-size: 1.6rem; color: var(--hot); margin-bottom: 1.4rem; position: relative; z-index: 1; }
+.letter-p { font-size: 0.97rem; line-height: 1.85; color: #4a3010; font-weight: 300; margin-bottom: 1.1rem; position: relative; z-index: 1; }
+.letter-p strong { color: #2e1a06; font-weight: 600; }
+.letter-sign { font-family: 'Dancing Script', cursive; font-size: 1.4rem; color: #7a4a20; margin-top: 2rem; position: relative; z-index: 1; }
+.letter-sign .sig { font-size: 1.9rem; color: var(--hot); display: block; }
+.env-close-btn {
+  display: block; margin: 1.4rem auto 0; background: transparent; border: none;
+  font-family: 'Dancing Script', cursive; font-size: 1rem; color: var(--muted);
+  cursor: pointer; text-decoration: underline;
+}
+.meet { background: white; }
+.meet-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; margin-top: 3rem; }
+.meet-photo-wrap { position: relative; }
+.meet-photo-frame { width: 100%; aspect-ratio: 1/1; border-radius: 28px; overflow: hidden; border: 5px solid white; box-shadow: 0 20px 56px rgba(232,23,138,0.14); background: var(--rose); }
+.meet-photo-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.meet-badge { position: absolute; bottom: -14px; right: -14px; background: var(--hot); color: white; border-radius: 50%; width: 104px; height: 104px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(232,23,138,0.35); border: 4px solid white; text-align: center; }
+.mb-script { font-family: 'Dancing Script', cursive; font-size: 1rem; line-height: 1.2; }
+.mb-sub    { font-size: 0.58rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.8; margin-top: 0.1rem; }
+.meet-chips { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1.2rem 0 1.6rem; }
+.meet-chip { background: var(--blush); color: var(--hot); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.35rem 0.9rem; border-radius: 50px; border: 1.5px solid var(--petal); }
+.meet-p { font-size: 0.95rem; line-height: 1.8; color: var(--mauve); font-weight: 300; margin-bottom: 1rem; }
+.meet-p strong { color: var(--ink); font-weight: 600; }
+.meet-proof { display: flex; gap: 0; margin-top: 1.8rem; background: var(--cream); border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; }
+.mp-item { flex: 1; padding: 1.1rem; text-align: center; border-right: 1px solid var(--border); }
+.mp-item:last-child { border-right: none; }
+.mp-num { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; color: var(--hot); line-height: 1; }
+.mp-lbl { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 0.2rem; }
+
+/* ── STEP 5 — TRANSFORMATION (Before / After) ── */
+.transform { background: var(--cream); }
+.ba-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; margin-top: 3rem; align-items: stretch; }
+.ba-col { border-radius: 24px; overflow: hidden; }
+.ba-col.before { background: white; border: 1.5px solid var(--border); }
+.ba-col.after  { background: linear-gradient(145deg, var(--hot), var(--deep)); }
+.ba-header { padding: 1.4rem 2rem; display: flex; align-items: center; gap: 0.8rem; }
+.ba-col.before .ba-header { border-bottom: 1px solid var(--border); }
+.ba-col.after  .ba-header { border-bottom: 1px solid rgba(255,255,255,0.2); }
+.ba-head-icon { font-size: 1.4rem; }
+.ba-head-label { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+.ba-col.before .ba-head-label { color: var(--mauve); }
+.ba-col.after  .ba-head-label { color: white; }
+.ba-list { padding: 1.6rem 2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+.ba-item { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.88rem; line-height: 1.45; }
+.ba-col.before .ba-item { color: var(--mauve); font-weight: 300; }
+.ba-col.after  .ba-item { color: rgba(255,255,255,0.9); font-weight: 300; }
+.ba-dot-b { width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; background: #f0e0e8; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; color: var(--muted); margin-top: 0.1rem; }
+.ba-dot-a { width: 18px; height: 18px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: white; margin-top: 0.1rem; }
+/* arrow divider */
+.ba-arrow-col { display: flex; align-items: center; justify-content: center; padding: 0 1rem; }
+.ba-arrow-circle { width: 52px; height: 52px; background: var(--hot); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: white; box-shadow: 0 6px 20px rgba(232,23,138,0.35); border: 4px solid var(--cream); }
+
+/* ── STEP 6 — COMPATIBILITY QUIZ ── */
+.quiz-section { background: white; }
+.quiz-wrap { max-width: 680px; margin: 3rem auto 0; background: var(--cream); border-radius: 28px; overflow: hidden; border: 1.5px solid var(--border); box-shadow: 0 12px 48px rgba(232,23,138,0.08); }
+.quiz-header { background: linear-gradient(135deg, var(--hot), var(--deep)); padding: 2rem 2.5rem; color: white; text-align: center; position: relative; overflow: hidden; }
+.quiz-header::before { content: ''; position: absolute; width: 300px; height: 300px; border: 60px solid rgba(255,255,255,0.06); border-radius: 50%; top: -100px; right: -80px; }
+.qh-label { font-family: 'Dancing Script', cursive; font-size: 1.2rem; color: rgba(255,255,255,0.75); display: block; margin-bottom: 0.3rem; }
+.qh-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; position: relative; z-index: 1; }
+.quiz-progress { padding: 1rem 2.5rem 0; background: var(--cream); }
+.qp-top { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
+.qp-step { font-size: 0.75rem; color: var(--muted); font-weight: 500; }
+.qp-bar { height: 6px; background: var(--rose); border-radius: 50px; overflow: hidden; }
+.qp-fill { height: 100%; background: linear-gradient(90deg, var(--petal), var(--hot)); border-radius: 50px; transition: width 0.4s ease; }
+.quiz-body { padding: 2rem 2.5rem 2.5rem; background: var(--cream); }
+.q-step { display: none; }
+.q-step.active { display: block; }
+.q-question { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--ink); margin-bottom: 1.4rem; line-height: 1.3; }
+.q-heart { color: var(--hot); }
+.q-options { display: flex; flex-direction: column; gap: 0.7rem; }
+.q-opt { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem; border-radius: 14px; border: 1.5px solid var(--border); background: white; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; color: var(--ink); }
+.q-opt:hover { border-color: var(--hot); background: var(--blush); }
+.q-opt.selected { border-color: var(--hot); background: var(--blush); }
+.opt-icon { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+.opt-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); margin-left: auto; flex-shrink: 0; transition: all 0.2s; }
+.q-opt.selected .opt-check { background: var(--hot); border-color: var(--hot); display: flex; align-items: center; justify-content: center; }
+.q-opt.selected .opt-check::after { content: '✓'; color: white; font-size: 0.7rem; font-weight: 700; }
+.q-nav { display: flex; justify-content: flex-end; margin-top: 1.6rem; }
+.q-next { background: var(--hot); color: white; border: none; padding: 0.75rem 2rem; border-radius: 50px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.15s; opacity: 0.35; pointer-events: none; }
+.q-next.enabled { opacity: 1; pointer-events: all; }
+.q-next.enabled:hover { background: var(--deep); transform: translateY(-2px); }
+
+/* email gate */
+.quiz-email-gate { display: none; padding: 2rem 2.5rem 2.5rem; background: var(--cream); text-align: center; }
+.qe-lock { font-size: 2rem; margin-bottom: 0.8rem; }
+.qe-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--ink); margin-bottom: 0.4rem; }
+.qe-sub { font-size: 0.88rem; color: var(--mauve); font-weight: 300; line-height: 1.6; margin-bottom: 1.4rem; }
+.qe-fields { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1rem; }
+.qe-input { width: 100%; padding: 0.85rem 1.2rem; border-radius: 50px; border: 1.5px solid var(--border); background: white; font-size: 0.9rem; color: var(--ink); font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s; }
+.qe-input:focus { border-color: var(--hot); }
+.qe-input::placeholder { color: var(--muted); }
+.qe-btn { width: 100%; background: var(--hot); color: white; border: none; padding: 0.9rem; border-radius: 50px; font-size: 0.92rem; font-weight: 600; cursor: pointer; transition: background 0.2s, transform 0.15s; }
+.qe-btn:hover { background: var(--deep); transform: translateY(-2px); }
+.qe-privacy { font-size: 0.72rem; color: var(--muted); margin-top: 0.6rem; }
+
+/* result */
+.quiz-result { display: none; padding: 2rem 2.5rem 2.5rem; background: var(--cream); text-align: center; }
+.qr-match-pct { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 900; color: var(--hot); line-height: 1; }
+.qr-match-lbl { font-family: 'Dancing Script', cursive; font-size: 1.2rem; color: var(--mauve); margin-bottom: 1.6rem; display: block; }
+.qr-card { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 1.5rem; text-align: left; margin-bottom: 1.4rem; }
+.qr-card-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
+.qr-icon { width: 48px; height: 48px; background: var(--rose); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.qr-type { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--ink); }
+.qr-sub { font-size: 0.75rem; color: var(--hot); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.qr-desc { font-size: 0.88rem; line-height: 1.65; color: var(--mauve); font-weight: 300; }
+.qr-skills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
+.qr-skill { background: var(--blush); color: var(--hot); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.28rem 0.75rem; border-radius: 50px; border: 1.5px solid var(--petal); }
+.qr-cta-note { font-size: 0.9rem; color: var(--mauve); line-height: 1.6; margin-bottom: 1.4rem; }
+.qr-retake { background: transparent; color: var(--muted); border: none; font-size: 0.8rem; cursor: pointer; text-decoration: underline; margin-top: 0.6rem; display: block; }
+
+/* ── STEP 7 — SOCIAL PROOF (Testimonials) ── */
+.testimonials { background: var(--cream); }
+.testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 3rem; }
+.testi-card { background: white; border: 1.5px solid var(--border); border-radius: 22px; padding: 1.8rem; position: relative; transition: transform 0.2s, box-shadow 0.2s; }
+.testi-card:hover { transform: translateY(-5px); box-shadow: 0 14px 40px rgba(232,23,138,0.1); }
+.testi-quote-mark { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900; color: var(--petal); line-height: 1; margin-bottom: 0.4rem; }
+.testi-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; line-height: 1.65; color: var(--ink); margin-bottom: 1.4rem; }
+.testi-footer { display: flex; align-items: center; gap: 0.8rem; }
+.testi-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(145deg, var(--rose), var(--petal)); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; border: 2px solid white; box-shadow: 0 2px 8px rgba(232,23,138,0.15); }
+.testi-name { font-weight: 600; font-size: 0.85rem; color: var(--ink); }
+.testi-role { font-size: 0.75rem; color: var(--muted); font-weight: 300; }
+.testi-stars { color: var(--hot); font-size: 0.8rem; letter-spacing: 0.06em; margin-bottom: 0.8rem; }
+.testi-swap { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--blush); border: 1.5px dashed var(--petal); border-radius: 50px; padding: 0.28rem 0.8rem; font-size: 0.68rem; color: var(--hot); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; position: absolute; top: 1rem; right: 1rem; }
+
+/* ── VA PROFILE CARDS ── */
+.profiles { background: white; }
+.profiles-intro { text-align: center; max-width: 500px; margin: 0 auto 3rem; }
+.profile-deck { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+.profile-card { background: var(--cream); border: 1.5px solid var(--border); border-radius: 24px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; position: relative; }
+.profile-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(232,23,138,0.13); }
+.pc-header { padding: 1.8rem 1.8rem 1.2rem; text-align: center; background: linear-gradient(145deg, var(--blush), var(--rose)); position: relative; }
+.pc-emoji { font-size: 2.5rem; display: block; margin-bottom: 0.6rem; }
+.pc-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--ink); }
+.pc-tagline { font-family: 'Dancing Script', cursive; font-size: 1rem; color: var(--hot); margin-top: 0.15rem; }
+.pc-compat { position: absolute; top: 1rem; right: 1rem; background: var(--hot); color: white; border-radius: 50px; padding: 0.25rem 0.7rem; font-size: 0.7rem; font-weight: 700; }
+.pc-body { padding: 1.4rem 1.8rem; }
+.pc-traits { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.2rem; }
+.pc-trait { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; color: var(--mauve); }
+.pc-trait-dot { width: 6px; height: 6px; background: var(--hot); border-radius: 50%; flex-shrink: 0; }
+.pc-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.pc-tag { background: white; border: 1.5px solid var(--border); color: var(--mauve); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.25rem 0.65rem; border-radius: 50px; }
+.pc-footer { padding: 0 1.8rem 1.6rem; }
+.pc-btn { width: 100%; background: white; border: 2px solid var(--border); color: var(--hot); padding: 0.7rem; border-radius: 50px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.pc-btn:hover { background: var(--hot); color: white; border-color: var(--hot); }
+
+/* ── STEP 8 — THE OFFER / PROCESS ── */
+.process { background: var(--cream); }
+.process-steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 3rem; position: relative; }
+.process-steps::before { content: ''; position: absolute; top: 52px; left: calc(16.5% + 1rem); right: calc(16.5% + 1rem); height: 2px; background: linear-gradient(90deg, var(--hot), var(--petal)); z-index: 0; }
+.process-card { background: white; border: 1.5px solid var(--border); border-radius: 22px; padding: 2rem 1.8rem; position: relative; z-index: 1; transition: transform 0.2s, box-shadow 0.2s; }
+.process-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(232,23,138,0.1); }
+.process-num { width: 56px; height: 56px; background: var(--hot); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.45rem; font-weight: 700; margin-bottom: 1.4rem; border: 4px solid white; box-shadow: 0 4px 18px rgba(232,23,138,0.28); }
+.process-card h3 { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); margin-bottom: 0.6rem; }
+.process-card p { font-size: 0.85rem; line-height: 1.68; color: var(--mauve); font-weight: 300; }
+.process-tag { display: inline-block; margin-top: 1rem; background: var(--blush); color: var(--hot); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; padding: 0.3rem 0.85rem; border-radius: 50px; }
+
+/* ── VA CAPABILITIES ── */
+.capabilities { background: white; }
+.cap-tabs { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 2.5rem 0 2rem; }
+.cap-tab { padding: 0.55rem 1.3rem; border-radius: 50px; border: 1.5px solid var(--border); background: var(--cream); font-size: 0.8rem; font-weight: 500; color: var(--mauve); cursor: pointer; transition: all 0.2s; }
+.cap-tab.active, .cap-tab:hover { background: var(--hot); color: white; border-color: var(--hot); }
+.cap-panels { min-height: 180px; }
+.cap-panel { display: none; }
+.cap-panel.active { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.85rem; }
+.cap-chip { display: flex; align-items: center; gap: 0.6rem; background: var(--cream); border: 1.5px solid var(--border); border-radius: 12px; padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--ink); transition: border-color 0.2s, background 0.2s; }
+.cap-chip:hover { border-color: var(--petal); background: var(--blush); }
+.cap-chip span { font-size: 1rem; }
+
+/* ── WHY A VA ── */
+.why-va { background: var(--cream); }
+.why-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 3rem; }
+.why-card { background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 2rem 1.8rem; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+.why-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(232,23,138,0.1); border-color: var(--petal); }
+.why-icon { width: 50px; height: 50px; background: var(--blush); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.2rem; transition: background 0.2s; }
+.why-card:hover .why-icon { background: var(--rose); }
+.why-card h3 { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; margin-bottom: 0.55rem; color: var(--ink); }
+.why-card p { font-size: 0.85rem; line-height: 1.68; color: var(--mauve); font-weight: 300; }
+.cost-strip { margin-top: 3rem; background: white; border: 1.5px solid var(--border); border-radius: 20px; padding: 2rem 2.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+.cost-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--ink); margin-bottom: 0.4rem; }
+.cost-sub { font-size: 0.85rem; color: var(--mauve); font-weight: 300; line-height: 1.6; }
+.cost-bars { display: flex; flex-direction: column; gap: 0.85rem; }
+.cost-row { display: flex; align-items: center; gap: 1rem; }
+.cost-lbl { font-size: 0.78rem; color: var(--mauve); width: 130px; flex-shrink: 0; }
+.bar-wrap { flex: 1; height: 10px; background: var(--rose); border-radius: 50px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 50px; }
+.bar-us { background: #d9a0be; width: 100%; }
+.bar-va { background: var(--hot); width: 36%; animation: growBar 1.4s 0.6s ease both; }
+@keyframes growBar { from{width:0;} to{width:36%;} }
+.cost-val { font-size: 0.78rem; font-weight: 600; color: var(--ink); width: 72px; text-align: right; }
+.pricing-note { background: var(--blush); border: 1.5px solid var(--petal); border-radius: 14px; padding: 1.1rem 1.4rem; display: flex; align-items: flex-start; gap: 0.8rem; margin-top: 1rem; }
+.pn-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+.pn-text { font-size: 0.83rem; line-height: 1.6; color: var(--mauve); font-weight: 300; }
+.pn-text strong { color: var(--hot); font-weight: 600; }
+
+/* ── TIKTOK BRIDGE ── */
+.tiktok-bridge { background: linear-gradient(135deg, var(--ink) 0%, #3d1430 100%); padding: 5rem 4rem; position: relative; overflow: hidden; }
+.tiktok-bridge::before { content: ''; position: absolute; width: 500px; height: 500px; border: 100px solid rgba(232,23,138,0.08); border-radius: 50%; top: -100px; right: -100px; pointer-events: none; }
+.tb-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; position: relative; z-index: 2; }
+.tb-label { font-family: 'Dancing Script', cursive; font-size: 1.2rem; color: var(--petal); opacity: 0.8; display: block; margin-bottom: 0.5rem; }
+.tb-title { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 3.2vw, 2.6rem); font-weight: 900; color: white; line-height: 1.12; margin-bottom: 1rem; }
+.tb-title em { font-style: italic; color: var(--petal); }
+.tb-body { font-size: 0.95rem; line-height: 1.75; color: rgba(255,255,255,0.7); font-weight: 300; margin-bottom: 1.6rem; }
+.tb-handle { display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.15); padding: 0.55rem 1.2rem; border-radius: 50px; color: white; font-size: 0.85rem; font-weight: 500; text-decoration: none; transition: background 0.2s; margin-right: 0.6rem; margin-bottom: 0.6rem; }
+.tb-handle:hover { background: var(--hot); border-color: var(--hot); }
+.tb-pillars { display: flex; flex-direction: column; gap: 1rem; }
+.tb-pillar { background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.1rem 1.4rem; display: flex; align-items: center; gap: 1rem; transition: background 0.2s; }
+.tb-pillar:hover { background: rgba(232,23,138,0.12); border-color: rgba(232,23,138,0.3); }
+.tb-pillar-icon { font-size: 1.4rem; flex-shrink: 0; width: 36px; text-align: center; }
+.tb-pillar-text h4 { font-weight: 600; font-size: 0.88rem; color: white; margin-bottom: 0.18rem; }
+.tb-pillar-text p  { font-size: 0.78rem; color: rgba(255,255,255,0.5); font-weight: 300; }
+
+/* ── STEP 9 — FAQ ── */
+.faq { background: var(--cream); }
+.faq-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 3rem; align-items: start; }
+.faq-item { border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; background: white; transition: border-color 0.2s; }
+.faq-item.open { border-color: var(--petal); }
+.faq-q { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.4rem; cursor: pointer; gap: 1rem; }
+.faq-q span { font-weight: 500; font-size: 0.88rem; color: var(--ink); line-height: 1.4; }
+.faq-icon { width: 28px; height: 28px; background: var(--blush); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--hot); flex-shrink: 0; transition: background 0.2s, transform 0.3s; }
+.faq-item.open .faq-icon { background: var(--hot); color: white; transform: rotate(45deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.25s; font-size: 0.84rem; line-height: 1.68; color: var(--mauve); font-weight: 300; padding: 0 1.4rem; }
+.faq-item.open .faq-a { max-height: 280px; padding: 0 1.4rem 1.3rem; }
+
+/* ── STEP 10+11 — CTA + RISK REVERSAL ── */
+.book-cta { background: var(--hot); padding: 7rem 4rem; text-align: center; position: relative; overflow: hidden; }
+.book-cta::before { content: ''; position: absolute; width: 700px; height: 700px; border: 130px solid rgba(255,255,255,0.06); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; }
+.scarcity-bar { display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3); padding: 0.4rem 1.2rem; border-radius: 50px; margin-bottom: 1.6rem; position: relative; z-index: 2; }
+.scarcity-dot { width: 8px; height: 8px; background: white; border-radius: 50%; animation: pulse 1.5s ease-in-out infinite; }
+.scarcity-text { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: white; }
+.cta-script { font-family: 'Dancing Script', cursive; font-size: 1.5rem; color: rgba(255,255,255,0.75); display: block; margin-bottom: 0.4rem; position: relative; z-index: 2; }
+.cta-h { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 4.5vw, 3.8rem); font-weight: 900; color: white; line-height: 1.1; position: relative; z-index: 2; }
+.cta-h em { font-style: italic; color: rgba(255,255,255,0.82); }
+.cta-sub { font-size: 1rem; color: rgba(255,255,255,0.85); margin: 1.2rem auto 0.8rem; max-width: 500px; line-height: 1.72; font-weight: 300; position: relative; z-index: 2; }
+.cta-proof-strip { display: flex; align-items: center; justify-content: center; gap: 1.5rem; margin: 1.6rem auto 2.4rem; flex-wrap: wrap; position: relative; z-index: 2; }
+.cps-item { display: flex; align-items: center; gap: 0.5rem; color: rgba(255,255,255,0.82); font-size: 0.82rem; }
+.cps-sep { color: rgba(255,255,255,0.3); }
+.btn-white { background: white; color: var(--hot); border: none; padding: 1.15rem 3rem; border-radius: 50px; font-size: 1.02rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 32px rgba(0,0,0,0.18); transition: transform 0.15s, box-shadow 0.2s; position: relative; z-index: 2; }
+.btn-white:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(0,0,0,0.24); }
+.cta-micro { margin-top: 1rem; font-size: 0.76rem; color: rgba(255,255,255,0.5); position: relative; z-index: 2; }
+.cta-divider {
+  color: rgba(255,255,255,0.4); font-size: 0.82rem; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin: 1.8rem auto; position: relative; z-index: 2;
+  display: flex; align-items: center; gap: 1rem; max-width: 280px;
+}
+.cta-divider::before, .cta-divider::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.2);
+}
+.btn-be-match {
+  background: transparent; color: white;
+  border: 2px solid rgba(255,255,255,0.45);
+  padding: 0.9rem 2.4rem; border-radius: 50px;
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  position: relative; z-index: 2;
+  font-family: 'DM Sans', sans-serif;
+}
+.btn-be-match:hover { background: rgba(255,255,255,0.12); border-color: white; transform: translateY(-2px); }
+.risk-row { display: flex; align-items: center; justify-content: center; gap: 1.8rem; margin-top: 2rem; flex-wrap: wrap; position: relative; z-index: 2; }
+.risk-item { display: flex; align-items: center; gap: 0.45rem; color: rgba(255,255,255,0.65); font-size: 0.8rem; }
+
+/* ── FOOTER ── */
+footer { background: var(--ink); padding: 2.5rem 4rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; }
+.foot-logo { font-family: 'Dancing Script', cursive; font-size: 1.7rem; color: var(--petal); }
+.foot-tagline { font-size: 0.72rem; color: rgba(255,255,255,0.28); margin-top: 0.2rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.foot-links { display: flex; gap: 2rem; }
+.foot-links a { font-size: 0.76rem; color: rgba(255,255,255,0.38); text-decoration: none; letter-spacing: 0.07em; text-transform: uppercase; transition: color 0.2s; }
+.foot-links a:hover { color: var(--petal); }
+.foot-handles { display: flex; gap: 0.7rem; }
+.handle { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.42); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.74rem; text-decoration: none; transition: background 0.2s, color 0.2s; }
+.handle:hover { background: var(--hot); color: white; }
+
+/* ── VA ROSTER SECTION ── */
+.va-roster {
+  background: linear-gradient(145deg, #2d0f22 0%, #4a1535 50%, #2d0f22 100%);
+  padding: 6rem 4rem; position: relative; overflow: hidden;
+}
+.va-roster::before {
+  content: ''; position: absolute; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(178,100,140,0.12) 0%, transparent 70%);
+  top: -100px; left: -100px; border-radius: 50%; pointer-events: none;
+}
+.va-roster::after {
+  content: ''; position: absolute; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(178,100,140,0.1) 0%, transparent 70%);
+  bottom: -80px; right: -80px; border-radius: 50%; pointer-events: none;
+}
+.va-roster-inner { position: relative; z-index: 2; }
+
+.va-roster-head { text-align: center; max-width: 560px; margin: 0 auto 3.5rem; }
+.var-eyebrow {
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  background: rgba(178,100,140,0.2); border: 1.5px solid rgba(178,100,140,0.35);
+  padding: 0.38rem 1rem; border-radius: 50px;
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #d4a0c0; margin-bottom: 1.2rem; display: inline-flex;
+}
+.var-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 3.5vw, 2.8rem); font-weight: 900;
+  line-height: 1.12; color: white; margin-bottom: 0.8rem;
+}
+.var-title em { font-style: italic; color: #e8a0c8; }
+.var-sub { font-size: 0.95rem; line-height: 1.75; color: rgba(255,255,255,0.6); font-weight: 300; }
+
+.va-roster-grid { display: grid; grid-template-columns: 1fr 267px 1fr; gap: 2rem; align-items: start; }
+
+/* video */
+.var-video-wrap { margin-bottom: 1.5rem; }
+.var-video-label {
+  font-family: 'Dancing Script', cursive; font-size: 1rem; color: #e8a0c8;
+  display: block; margin-bottom: 0.8rem;
+}
+.var-video-frame {
+  border-radius: 18px; overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 2px solid rgba(178,100,140,0.3);
+  background: #1a0810;
+  display: flex; justify-content: center;
+}
+
+/* left — what makes a chai-approved VA */
+.var-standards { display: flex; flex-direction: column; gap: 0.9rem; }
+.var-std-label {
+  font-family: 'Dancing Script', cursive; font-size: 1.15rem; color: #e8a0c8;
+  margin-bottom: 0.3rem; display: block;
+}
+.var-std-item {
+  display: flex; align-items: flex-start; gap: 0.9rem;
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(178,100,140,0.2);
+  border-radius: 14px; padding: 1rem 1.2rem;
+  transition: background 0.2s, border-color 0.2s;
+}
+.var-std-item:hover { background: rgba(178,100,140,0.12); border-color: rgba(178,100,140,0.4); }
+.var-std-icon {
+  width: 36px; height: 36px; flex-shrink: 0;
+  background: rgba(232,23,138,0.15); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.var-std-text h4 { font-weight: 600; font-size: 0.88rem; color: white; margin-bottom: 0.2rem; }
+.var-std-text p  { font-size: 0.78rem; color: rgba(255,255,255,0.5); font-weight: 300; line-height: 1.5; }
+
+/* right — application card */
+.var-apply-card {
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(178,100,140,0.25);
+  border-radius: 24px; overflow: hidden;
+}
+.var-apply-header {
+  background: linear-gradient(135deg, rgba(232,23,138,0.3), rgba(181,9,108,0.3));
+  padding: 1.6rem 2rem; border-bottom: 1px solid rgba(178,100,140,0.2);
+}
+.var-apply-header h3 {
+  font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700;
+  color: white; margin-bottom: 0.3rem;
+}
+.var-apply-header p { font-size: 0.82rem; color: rgba(255,255,255,0.6); font-weight: 300; }
+
+.var-apply-body { padding: 1.6rem 2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+.var-input {
+  width: 100%; padding: 0.8rem 1.1rem; border-radius: 50px;
+  border: 1.5px solid rgba(178,100,140,0.3);
+  background: rgba(255,255,255,0.06); color: white;
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none;
+  transition: border-color 0.2s;
+}
+.var-input:focus { border-color: rgba(232,23,138,0.6); }
+.var-input::placeholder { color: rgba(255,255,255,0.35); }
+.var-select {
+  width: 100%; padding: 0.8rem 1.1rem; border-radius: 50px;
+  border: 1.5px solid rgba(178,100,140,0.3);
+  background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75);
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none;
+  cursor: pointer; transition: border-color 0.2s;
+  appearance: none;
+}
+.var-select:focus { border-color: rgba(232,23,138,0.6); }
+.var-select option { background: #2d0f22; color: white; }
+.var-apply-btn {
+  width: 100%; background: var(--hot); color: white; border: none;
+  padding: 0.9rem; border-radius: 50px; font-size: 0.92rem; font-weight: 600;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
+  box-shadow: 0 6px 20px rgba(232,23,138,0.35); margin-top: 0.3rem;
+}
+.var-apply-btn:hover { background: var(--deep); transform: translateY(-2px); }
+.var-apply-success { display: none; text-align: center; padding: 1rem 0; }
+.var-apply-success .vas-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.var-apply-success h4 { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 0.4rem; }
+.var-apply-success p { font-size: 0.85rem; color: rgba(255,255,255,0.6); font-weight: 300; }
+
+/* perks strip */
+.var-perks {
+  display: flex; gap: 0; margin-top: 1.2rem;
+  background: rgba(255,255,255,0.04); border: 1.5px solid rgba(178,100,140,0.2);
+  border-radius: 14px; overflow: hidden;
+}
+.var-perk {
+  flex: 1; padding: 0.9rem 0.7rem; text-align: center;
+  border-right: 1px solid rgba(178,100,140,0.2);
+}
+.var-perk:last-child { border-right: none; }
+.var-perk-icon { font-size: 1.2rem; display: block; margin-bottom: 0.3rem; }
+.var-perk-text { font-size: 0.72rem; color: rgba(255,255,255,0.5); font-weight: 300; line-height: 1.4; }
+
+/* FB community strip */
+.var-fb-strip {
+  margin-top: 2.5rem; padding: 1.4rem 2rem;
+  background: rgba(255,255,255,0.05); border: 1.5px solid rgba(178,100,140,0.2);
+  border-radius: 18px; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;
+}
+.var-fb-left { display: flex; align-items: center; gap: 1rem; }
+.var-fb-icon { font-size: 2rem; }
+.var-fb-text h4 { font-weight: 600; font-size: 0.92rem; color: white; margin-bottom: 0.15rem; }
+.var-fb-text p  { font-size: 0.78rem; color: rgba(255,255,255,0.5); font-weight: 300; }
+.var-fb-btn {
+  background: #1877f2; color: white; border: none;
+  padding: 0.7rem 1.6rem; border-radius: 50px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap;
+  display: flex; align-items: center; gap: 0.5rem;
+  transition: background 0.2s, transform 0.15s; text-decoration: none;
+}
+.var-fb-btn:hover { background: #1565d8; transform: translateY(-2px); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(26px);} to{opacity:1;transform:translateY(0);} }
+.reveal   { opacity:0; transform:translateY(30px);  transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal-l { opacity:0; transform:translateX(-28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.reveal-r { opacity:0; transform:translateX(28px);  transition: opacity 0.65s ease, transform 0.65s ease; }
+.vis { opacity:1 !important; transform:none !important; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  nav { padding: 1rem 1.5rem; } .nav-links { display: none; }
+  .hero { grid-template-columns: 1fr; padding: 7rem 1.5rem 4rem; }
+  .hero-visual { order: -1; } .photo-card { width: 270px; }
+  .ft1,.ft2 { display: none; } .fst1,.fst2,.fst3 { right: -8px; }
+  .profile-overlay { display: none; }
+  section { padding: 4rem 1.5rem; }
+  .pain-inner, .meet-layout, .ba-grid, .tb-inner, .faq-cols, .cost-strip { grid-template-columns: 1fr; }
+  .ba-grid { grid-template-rows: auto auto auto; }
+  .ba-arrow-col { padding: 0.5rem 0; transform: rotate(90deg); }
+  .why-grid, .profile-deck, .testi-grid { grid-template-columns: 1fr 1fr; }
+  .process-steps { grid-template-columns: 1fr; }
+  .process-steps::before { display: none; }
+  .cap-panel.active { grid-template-columns: 1fr 1fr; }
+  .scroll-open-body { padding: 2rem 1.5rem; }
+  .letter-section { padding: 4rem 1.5rem; }
+  .va-roster { padding: 4rem 1.5rem; }
+  .va-roster-grid { grid-template-columns: 1fr; }
+  .book-cta { padding: 5rem 1.5rem; }
+  footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+  .foot-links, .foot-handles { justify-content: center; flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+  .why-grid, .profile-deck, .testi-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">Chai <span class="heart">♥</span></span>
+  <ul class="nav-links">
+    <li><a href="#pain">Sound Familiar?</a></li>
+    <li><a href="#quiz">Find My Match</a></li>
+    <li><a href="#profiles">VA Types</a></li>
+    <li><a href="#process">How It Works</a></li>
+    <li><a href="#va-apply">Apply as VA</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Find My Match ♥</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     STEP 1 — ATTENTION: Hero
+════════════════════════════════════════════ -->
+<section class="hero" id="home">
+  <div class="hero-grid"></div>
+  <div class="hearts-bg">
+    <span class="hb">♥</span><span class="hb">♡</span><span class="hb">♥</span>
+    <span class="hb">♡</span><span class="hb">♥</span><span class="hb">♡</span>
+  </div>
+  <div class="hero-text">
+    <div class="app-badge"><span class="pulse-dot"></span>The VA Matchmaker</div>
+    <h1 class="hero-h1">You deserve a VA<br>you actually <em>love.</em></h1>
+    <p class="hero-tagline">I'm your VA Matchmaker — Less Stress, Better Hires ♥</p>
+    <p class="hero-sub">Finding you the right person so you can finally breathe easy. A real match built around how you work — not a list, not a guess.</p>
+    <div class="match-meter">
+      <span class="mm-label">Match success rate</span>
+      <div class="mm-bar"><div class="mm-fill"></div></div>
+      <span class="mm-pct">94%</span>
+    </div>
+    <div class="hero-btns">
+      <button class="btn-hot" onclick="document.getElementById('quiz').scrollIntoView({behavior:'smooth'})">Find My VA Match ♥</button>
+      <button class="btn-ghost" onclick="document.getElementById('letter').scrollIntoView({behavior:'smooth'})">Read My Letter First</button>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="photo-card">
+      <div class="photo-frame">
+        <img src="/mnt/user-data/uploads/chai.png" alt="Chai" onerror="this.style.display='none';" />
+      </div>
+      <div class="float-tag ft1"><span class="ft-arrow">↘</span><span class="ft-label">VA Girlie</span></div>
+      <div class="float-tag ft2"><span class="ft-arrow">↗</span><span class="ft-label">Pisces Baby</span></div>
+      <div class="float-stat fst1"><span class="fs-num">$1M+</span><span class="fs-lbl">Brand Built</span></div>
+      <div class="float-stat fst2"><span class="fs-num">250K+</span><span class="fs-lbl">People Reached</span></div>
+      <div class="float-stat fst3"><span class="fs-num">5+ yrs</span><span class="fs-lbl">Strategy & Ops</span></div>
+      <div class="profile-overlay">
+        <div>
+          <div class="po-name">Chai ♥</div>
+          <div class="po-title">The VA Matchmaker · Strategy & Ops</div>
+        </div>
+        <div class="po-actions">
+          <button class="po-btn pass" title="Not yet">✕</button>
+          <button class="po-btn like" title="Let's go!" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">♥</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item"><span class="t-star">♥</span> Less Stress · Better Hires</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Swipe Right on Your Perfect VA</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Pre-Vetted · Personally Matched</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Built Inside a $1M+ Brand</span>
+    <span class="ticker-item"><span class="t-star">♥</span> It's a Match — Not Just a Hire</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Finally Breathe Easy ♥</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Less Stress · Better Hires</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Swipe Right on Your Perfect VA</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Pre-Vetted · Personally Matched</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Built Inside a $1M+ Brand</span>
+    <span class="ticker-item"><span class="t-star">♥</span> It's a Match — Not Just a Hire</span>
+    <span class="ticker-item"><span class="t-star">♥</span> Finally Breathe Easy ♥</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     STEP 2 — PAIN AGITATION: Does This Sound Familiar?
+════════════════════════════════════════════ -->
+<section class="pain" id="pain">
+  <div style="text-align:center; max-width:520px; margin:0 auto;" class="reveal">
+    <span class="s-label">Does this sound familiar?</span>
+    <h2 class="s-title">You built something amazing.<br>And now it's <em>eating you alive.</em></h2>
+  </div>
+  <div class="pain-inner">
+    <div class="pain-list reveal-l">
+      <div class="pain-item"><div class="pain-check">✓</div>You're answering emails at 11pm because there's no one else</div>
+      <div class="pain-item"><div class="pain-check">✓</div>Your content calendar is three weeks behind — again</div>
+      <div class="pain-item"><div class="pain-check">✓</div>You started this business for freedom but you feel more trapped than ever</div>
+      <div class="pain-item"><div class="pain-check">✓</div>You know you need help but don't know where to find someone you can actually trust</div>
+      <div class="pain-item"><div class="pain-check">✓</div>You've thought about hiring before but didn't want to babysit someone on top of everything else</div>
+      <div class="pain-item"><div class="pain-check">✓</div>Deep down you know the bottleneck in your business right now is you</div>
+    </div>
+    <div class="pain-close reveal-r">
+      <span class="pc-script">Here's the truth, love ♥</span>
+      <p class="pc-h">The problem isn't that you're not working hard enough. It's that you're working on the wrong things.</p>
+      <p class="pc-p">You are the visionary. You are the relationship builder. You are the one with the ideas that move people. Every hour you spend on tasks that anyone else could do? That's an hour your business doesn't get the best of you. A VA doesn't take over your business. They free you to actually run it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 3 — INTEREST: The Scroll Letter
+════════════════════════════════════════════ -->
+<section class="letter-section" id="letter">
+  <div class="letter-section-head reveal">
+    <span class="s-label">A note from me</span>
+    <h2 class="s-title">Before we swipe right,<br>let me introduce <em>myself.</em></h2>
+  </div>
+
+  <!-- ENVELOPE LETTER -->
+  <div class="env-container reveal" id="envContainer">
+
+    <!-- SEALED ENVELOPE -->
+    <div class="env-sealed" id="envSealed" onclick="openEnvelope()">
+      <div class="env-body">
+        <!-- top flap — shallow banner chevron -->
+        <div class="env-flap">
+          <svg viewBox="0 0 560 50" xmlns="http://www.w3.org/2000/svg" style="height:50px">
+            <defs>
+              <linearGradient id="flapGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f8d4e5"/>
+                <stop offset="100%" stop-color="#e8a8c8"/>
+              </linearGradient>
+            </defs>
+            <polygon points="0,0 560,0 560,4 280,46 0,4" fill="url(#flapGrad)" stroke="#f0b8d0" stroke-width="1"/>
+          </svg>
+        </div>
+
+        <!-- heart wax seal centered -->
+        <div class="env-seal">
+          <div class="env-seal-circle">♥</div>
+        </div>
+
+        <!-- banner label -->
+        <span class="env-banner-label">A letter just for you…</span>
+
+        <!-- blurred letter lines flanking center -->
+        <div class="env-lines">
+          <div class="env-line"></div>
+          <div class="env-line"></div>
+          <div class="env-line"></div>
+          <div class="env-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="env-hint" id="envHint">♥ Click the envelope to read my letter</p>
+
+    <!-- OPEN STATE: flap lifts, letter slides up -->
+    <div class="env-open-shell" id="envOpenShell">
+      <div class="env-flap-open">
+        <svg viewBox="0 0 560 50" xmlns="http://www.w3.org/2000/svg" style="height:50px">
+          <defs>
+            <linearGradient id="flapGrad2" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f8d4e5"/>
+              <stop offset="100%" stop-color="#e8a8c8"/>
+            </linearGradient>
+          </defs>
+          <polygon points="0,0 560,0 560,4 280,46 0,4" fill="url(#flapGrad2)" stroke="#f0b8d0" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="env-open-body-bg"></div>
+    </div>
+
+    <!-- THE LETTER -->
+    <div class="env-letter" id="envLetter">
+      <div class="letter-paper">
+        <p class="letter-greeting">Dear Overwhelmed Business Owner,</p>
+        <p class="letter-p">I see you over there doing <strong>everything</strong>. Answering emails at midnight. Scheduling your own posts. Chasing invoices between client calls. Running every single department of your business — alone. And still wondering why you feel behind.</p>
+        <p class="letter-p">I know that feeling because I spent years inside <strong>Black On The Job</strong> — a first-of-its-kind career brand built exclusively for Black professionals — watching what it actually takes to scale something real. I ran the marketing strategy. I managed the projects. I built the systems that kept a fast-growing brand from falling apart. And that brand became a million-dollar company reaching 250,000+ people.</p>
+        <p class="letter-p">So when you tell me you need a VA, I don't just hand you a name. I ask the right questions. I listen for the gaps. I find someone who can actually think inside your business — not just complete a task list. <strong>Because I've been inside a business like yours, and I know what kind of support actually changes things.</strong></p>
+        <p class="letter-p">This is matchmaking — real, thoughtful, and personal. And I am really good at it. ♥</p>
+        <div class="letter-sign">
+          With love and strategy,<br>
+          <span class="sig">Chai ♥</span>
+        </div>
+      </div>
+      <button class="env-close-btn" onclick="closeEnvelope()">↩ Fold it back up</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 4 — SOLUTION: Meet Chai
+════════════════════════════════════════════ -->
+<section class="meet" id="meet">
+  <div style="text-align:center; max-width:540px; margin:0 auto 1rem;" class="reveal">
+    <span class="s-label">Hi, I'm Chai ♥</span>
+    <h2 class="s-title">I know what it takes to<br>build something <em>real.</em></h2>
+  </div>
+  <div class="meet-layout">
+    <div class="meet-photo-wrap reveal-l">
+      <div class="meet-photo-frame">
+        <img src="/mnt/user-data/uploads/chai.png" alt="Chai" onerror="this.style.display='none';" />
+      </div>
+      <div class="meet-badge"><span class="mb-script">VA Girlie ♥</span><span class="mb-sub">& Matchmaker</span></div>
+    </div>
+    <div class="reveal-r">
+      <div class="meet-chips">
+        <span class="meet-chip">Marketing Strategy</span>
+        <span class="meet-chip">Project Management</span>
+        <span class="meet-chip">Ops & Systems</span>
+        <span class="meet-chip">Team Building</span>
+      </div>
+      <p class="meet-p">I didn't just read about how to scale a brand — I was <strong>inside one, building it</strong>. I worked with Black On The Job, a first-of-its-kind career company serving over 250,000 Black professionals, and helped grow it into a million-dollar brand. I ran the marketing strategy, managed the launches, and made sure everything landed.</p>
+      <p class="meet-p">So when you come to me trying to figure out what kind of VA you need, <strong>I actually get it.</strong> I know the difference between someone who can check tasks off a list and someone who can think inside your business — and make things move. That difference is everything when you're trying to grow.</p>
+      <p class="meet-p">I started VA Source Solution because brilliant business owners deserve the right match — not just the first available name. <strong>Let me find your person. ♥</strong></p>
+      <div class="meet-proof">
+        <div class="mp-item"><div class="mp-num">$1M+</div><div class="mp-lbl">Brand Scaled</div></div>
+        <div class="mp-item"><div class="mp-num">250K+</div><div class="mp-lbl">Community</div></div>
+        <div class="mp-item"><div class="mp-num">First</div><div class="mp-lbl">of Its Kind</div></div>
+      </div>
+      <div style="margin-top:1.8rem">
+        <button class="btn-hot" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Book a Free Call With Me ♥</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 5 — DESIRE: Before / After Transformation
+════════════════════════════════════════════ -->
+<section class="transform" id="transform">
+  <div style="text-align:center; max-width:520px; margin:0 auto;" class="reveal">
+    <span class="s-label">The Transformation</span>
+    <h2 class="s-title">Imagine what <em>after</em><br>actually feels like.</h2>
+    <p class="s-body" style="margin:0 auto;">This is the shift my clients feel — usually within the first two weeks.</p>
+  </div>
+  <div class="ba-grid reveal">
+    <div class="ba-col before">
+      <div class="ba-header">
+        <span class="ba-head-icon">😮‍💨</span>
+        <span class="ba-head-label">Before Your Match</span>
+      </div>
+      <div class="ba-list">
+        <div class="ba-item"><div class="ba-dot-b">✕</div>Opening your laptop feels like dread — the inbox never ends</div>
+        <div class="ba-item"><div class="ba-dot-b">✕</div>You're doing $15/hour tasks when you should be doing $1,500/hour thinking</div>
+        <div class="ba-item"><div class="ba-dot-b">✕</div>Weekends disappear into catching up</div>
+        <div class="ba-item"><div class="ba-dot-b">✕</div>You're too in the weeds to see the big picture</div>
+        <div class="ba-item"><div class="ba-dot-b">✕</div>Growth feels impossible because you're already at capacity</div>
+        <div class="ba-item"><div class="ba-dot-b">✕</div>You lie awake thinking about everything that didn't get done</div>
+      </div>
+    </div>
+    <div class="ba-arrow-col">
+      <div class="ba-arrow-circle">♥</div>
+    </div>
+    <div class="ba-col after">
+      <div class="ba-header">
+        <span class="ba-head-icon">✨</span>
+        <span class="ba-head-label">After Your Match</span>
+      </div>
+      <div class="ba-list">
+        <div class="ba-item"><div class="ba-dot-a">✓</div>You open your laptop to a handled inbox and a clear day</div>
+        <div class="ba-item"><div class="ba-dot-a">✓</div>Your energy goes to the work that actually grows your business</div>
+        <div class="ba-item"><div class="ba-dot-a">✓</div>Weekends feel like weekends again</div>
+        <div class="ba-item"><div class="ba-dot-a">✓</div>You're leading — not just running from fire to fire</div>
+        <div class="ba-item"><div class="ba-dot-a">✓</div>Growth becomes possible because you finally have capacity</div>
+        <div class="ba-item"><div class="ba-dot-a">✓</div>You feel like yourself again — the person who built this</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 6 — ENGAGE: Compatibility Quiz
+════════════════════════════════════════════ -->
+<section class="quiz-section" id="quiz">
+  <div style="text-align:center; max-width:500px; margin:0 auto;" class="reveal">
+    <span class="s-label">Find Your Match</span>
+    <h2 class="s-title">What's your <em>VA type?</em></h2>
+    <p class="s-body" style="margin:0 auto;">Five quick questions. I'll tell you exactly what kind of VA your business is ready for — and send your results straight to your inbox.</p>
+  </div>
+  <div class="quiz-wrap reveal">
+    <div class="quiz-header">
+      <span class="qh-label">VA Compatibility Quiz</span>
+      <p class="qh-title">Let's find your perfect match ♥</p>
+    </div>
+    <div class="quiz-progress">
+      <div class="qp-top">
+        <span class="qp-step" id="stepLabel">Question 1 of 5</span>
+        <span class="qp-step" id="stepPct">20%</span>
+      </div>
+      <div class="qp-bar"><div class="qp-fill" id="qpFill" style="width:20%"></div></div>
+    </div>
+    <div class="quiz-body">
+      <div class="q-step active" id="qs1">
+        <p class="q-question">What's eating the most of your time right now? <span class="q-heart">♥</span></p>
+        <div class="q-options">
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📧</span>Emails, scheduling and admin chaos<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📱</span>Social media and content creation<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">💬</span>Customer messages and follow-ups<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🛍️</span>Running my online store day-to-day<div class="opt-check"></div></div>
+        </div>
+        <div class="q-nav"><button class="q-next" id="qn1" onclick="nextQ(1,2)">Next →</button></div>
+      </div>
+      <div class="q-step" id="qs2">
+        <p class="q-question">How do you prefer to communicate with your team? <span class="q-heart">♥</span></p>
+        <div class="q-options">
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">💬</span>Quick messages throughout the day<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📋</span>Organized tasks in a project tool<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📞</span>A quick weekly check-in call<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📧</span>Email updates — I like documentation<div class="opt-check"></div></div>
+        </div>
+        <div class="q-nav"><button class="q-next" id="qn2" onclick="nextQ(2,3)">Next →</button></div>
+      </div>
+      <div class="q-step" id="qs3">
+        <p class="q-question">Your ideal VA in action looks like… <span class="q-heart">♥</span></p>
+        <div class="q-options">
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🎯</span>Proactive — anticipates what I need before I ask<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">✅</span>Reliable — follows instructions and hits deadlines<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🎨</span>Creative — brings ideas and aesthetic sense<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📊</span>Analytical — loves systems, tracking and reporting<div class="opt-check"></div></div>
+        </div>
+        <div class="q-nav"><button class="q-next" id="qn3" onclick="nextQ(3,4)">Next →</button></div>
+      </div>
+      <div class="q-step" id="qs4">
+        <p class="q-question">How ready is your business for support right now? <span class="q-heart">♥</span></p>
+        <div class="q-options">
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🔥</span>I needed help yesterday — I'm overwhelmed<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">📈</span>I'm growing fast and need to get ahead of it<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🧘</span>Things are stable — I just want to work smarter<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🤔</span>Still figuring out what I actually need help with<div class="opt-check"></div></div>
+        </div>
+        <div class="q-nav"><button class="q-next" id="qn4" onclick="nextQ(4,5)">Next →</button></div>
+      </div>
+      <div class="q-step" id="qs5">
+        <p class="q-question">The biggest relief would be… <span class="q-heart">♥</span></p>
+        <div class="q-options">
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">😮‍💨</span>Getting my time back — full stop<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🌟</span>My brand looking consistent and polished online<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">💰</span>No lead or sale falling through the cracks<div class="opt-check"></div></div>
+          <div class="q-opt" onclick="selectOpt(this)"><span class="opt-icon">🛒</span>My store running without me babysitting it<div class="opt-check"></div></div>
+        </div>
+        <div class="q-nav"><button class="q-next" id="qn5" onclick="showEmailGate()">See My Match ♥</button></div>
+      </div>
+    </div>
+
+    <!-- EMAIL GATE -->
+    <div class="quiz-email-gate" id="quizEmailGate">
+      <div class="qe-lock">💌</div>
+      <p class="qe-title">Your match type is ready ♥</p>
+      <p class="qe-sub">Where should I send your results? I'll also include a personalized note on exactly what your VA type means for your specific business.</p>
+      <div class="qe-fields">
+        <input class="qe-input" type="text" id="gateName" placeholder="Your first name" />
+        <input class="qe-input" type="email" id="gateEmail" placeholder="Your email address" />
+      </div>
+      <button class="qe-btn" onclick="submitGate()">Show Me My Match ♥</button>
+      <p class="qe-privacy">No spam, ever. Just your results and the occasional love note from me. ♥</p>
+    </div>
+
+    <!-- RESULT -->
+    <div class="quiz-result" id="quizResult">
+      <p class="qr-match-pct" id="resultPct">94%</p>
+      <span class="qr-match-lbl">compatibility with your perfect VA type ♥</span>
+      <div class="qr-card" id="resultCard">
+        <div class="qr-card-top">
+          <div class="qr-icon" id="resultIcon">🗂️</div>
+          <div>
+            <div class="qr-type" id="resultType">The Admin Anchor</div>
+            <div class="qr-sub" id="resultSub">Your VA Match Type</div>
+          </div>
+        </div>
+        <p class="qr-desc" id="resultDesc"></p>
+        <div class="qr-skills" id="resultSkills"></div>
+      </div>
+      <p class="qr-cta-note">Ready to meet your actual match? I'll find you someone from my curated match network who fits this profile — and your business — perfectly. ♥</p>
+      <button class="btn-hot" style="width:100%" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">Book My Free Discovery Call ♥</button>
+      <button class="qr-retake" onclick="retakeQuiz()">↩ Take it again</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     VA PROFILE CARDS
+════════════════════════════════════════════ -->
+<section class="profiles" id="profiles">
+  <div class="profiles-intro reveal">
+    <span class="s-label">Meet the Match Types</span>
+    <h2 class="s-title">Every business needs<br>a different <em>kind of love.</em></h2>
+    <p class="s-body" style="margin:0 auto;">Not job titles — personality profiles, built for how real small businesses actually run.</p>
+  </div>
+  <div class="profile-deck">
+    <div class="profile-card reveal">
+      <div class="pc-header"><span class="pc-emoji">🗂️</span><div class="pc-name">The Admin Anchor</div><div class="pc-tagline">Your operational backbone ♥</div><span class="pc-compat">95% match</span></div>
+      <div class="pc-body">
+        <div class="pc-traits">
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Lives inside your inbox so you don't have to</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Keeps your calendar running like clockwork</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Anticipates what you need before you ask</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Handles follow-ups, docs and coordination</div>
+        </div>
+        <div class="pc-tags"><span class="pc-tag">Email</span><span class="pc-tag">Scheduling</span><span class="pc-tag">Research</span><span class="pc-tag">Operations</span></div>
+      </div>
+      <div class="pc-footer"><button class="pc-btn" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">I want this match ♥</button></div>
+    </div>
+    <div class="profile-card reveal" style="transition-delay:0.12s">
+      <div class="pc-header"><span class="pc-emoji">✨</span><div class="pc-name">The Content Queen</div><div class="pc-tagline">Your brand's best friend ♥</div><span class="pc-compat">92% match</span></div>
+      <div class="pc-body">
+        <div class="pc-traits">
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Keeps your social media consistent and alive</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Writes captions that actually sound like you</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Schedules, repurposes and tracks what works</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Canva-fluent and aesthetically sharp</div>
+        </div>
+        <div class="pc-tags"><span class="pc-tag">Social Media</span><span class="pc-tag">Captions</span><span class="pc-tag">Canva</span><span class="pc-tag">Content</span></div>
+      </div>
+      <div class="pc-footer"><button class="pc-btn" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">I want this match ♥</button></div>
+    </div>
+    <div class="profile-card reveal" style="transition-delay:0.24s">
+      <div class="pc-header"><span class="pc-emoji">💌</span><div class="pc-name">The Client Keeper</div><div class="pc-tagline">Your relationship manager ♥</div><span class="pc-compat">90% match</span></div>
+      <div class="pc-body">
+        <div class="pc-traits">
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Makes your customers feel genuinely cared for</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Responds to DMs and inquiries professionally</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>Handles reviews, refunds and follow-up sequences</div>
+          <div class="pc-trait"><span class="pc-trait-dot"></span>No lead left behind — ever</div>
+        </div>
+        <div class="pc-tags"><span class="pc-tag">DM Response</span><span class="pc-tag">Customer Care</span><span class="pc-tag">Reviews</span></div>
+      </div>
+      <div class="pc-footer"><button class="pc-btn" onclick="document.getElementById('book').scrollIntoView({behavior:'smooth'})">I want this match ♥</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 7 — SOCIAL PROOF: Testimonials
+════════════════════════════════════════════ -->
+<section class="testimonials" id="love">
+  <div style="text-align:center; max-width:480px; margin:0 auto;" class="reveal">
+    <span class="s-label">Love Stories</span>
+    <h2 class="s-title">They swiped right.<br><em>Here's what happened.</em></h2>
+    <p class="s-body" style="margin:0 auto;">Real business owners who finally stopped doing it all — and found their person through me.</p>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <span class="testi-swap">✦ Swap in</span>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-quote-mark">"</div>
+      <p class="testi-text">I was drowning in my own inbox for months. Chai asked me three questions I had never thought to ask myself — and within 72 hours I had a VA who felt like she had been with me for years.</p>
+      <div class="testi-footer">
+        <div class="testi-avatar">✨</div>
+        <div><div class="testi-name">Jasmine R.</div><div class="testi-role">Online Boutique Owner</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal" style="transition-delay:0.12s">
+      <span class="testi-swap">✦ Real quote</span>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-quote-mark">"</div>
+      <p class="testi-text">[Add your client's real quote here — what changed for them after getting their VA match? How did they feel before vs. after? The more specific, the better. ♥]</p>
+      <div class="testi-footer">
+        <div class="testi-avatar">💼</div>
+        <div><div class="testi-name">[Client Name]</div><div class="testi-role">[Business Type]</div></div>
+      </div>
+    </div>
+    <div class="testi-card reveal" style="transition-delay:0.24s">
+      <span class="testi-swap">✦ Swap in</span>
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-quote-mark">"</div>
+      <p class="testi-text">I had tried hiring on my own twice and both times it fell apart within a month. Chai matched me differently — she understood my business first. My VA has been with me six months and I cannot imagine running without her.</p>
+      <div class="testi-footer">
+        <div class="testi-avatar">🌟</div>
+        <div><div class="testi-name">Marcus D.</div><div class="testi-role">Marketing Consultant</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 8 — THE OFFER: Process
+════════════════════════════════════════════ -->
+<section class="process" id="process">
+  <div style="text-align:center; max-width:500px; margin:0 auto;" class="reveal">
+    <span class="s-label">How We Find The One</span>
+    <h2 class="s-title">Three steps to your<br><em>perfect match.</em></h2>
+    <p class="s-body" style="margin:0 auto;">No job boards. No scrolling. I do the work — you make the call.</p>
+  </div>
+  <div class="process-steps">
+    <div class="process-card reveal">
+      <div class="process-num">1</div>
+      <h3>The Chemistry Check</h3>
+      <p>A free 30-minute call where I learn your business, your bottlenecks, and how you actually like to work — so the match is real, not random.</p>
+      <span class="process-tag">Free · 30 min</span>
+    </div>
+    <div class="process-card reveal" style="transition-delay:0.15s">
+      <div class="process-num">2</div>
+      <h3>The Introduction</h3>
+      <p>I go into my curated match network and hand-pick your person — matched on skills, communication style, and fit for how your business actually runs. One great intro. That's it.</p>
+      <span class="process-tag">Within 72 hrs</span>
+    </div>
+    <div class="process-card reveal" style="transition-delay:0.3s">
+      <div class="process-num">3</div>
+      <h3>Committed and Running</h3>
+      <p>I give you the operational strategy to onboard smoothly so your VA hits the ground running — and you finally get to exhale. ♥</p>
+      <span class="process-tag">Supported start</span>
+    </div>
+  </div>
+</section>
+
+<!-- VA CAPABILITIES -->
+<section class="capabilities" id="capabilities">
+  <div class="reveal">
+    <span class="s-label">What Your VA Takes On</span>
+    <h2 class="s-title">Everything off your plate, <em>tomorrow.</em></h2>
+    <p class="s-body">Every match is built around what your business actually needs — not a generic job description.</p>
+  </div>
+  <div class="cap-tabs reveal">
+    <button class="cap-tab active" onclick="switchCap(this,'admin')">Admin & Ops</button>
+    <button class="cap-tab" onclick="switchCap(this,'social')">Social & Content</button>
+    <button class="cap-tab" onclick="switchCap(this,'customer')">Customer Support</button>
+    <button class="cap-tab" onclick="switchCap(this,'ecom')">E-Commerce</button>
+  </div>
+  <div class="cap-panels">
+    <div class="cap-panel active" id="tab-admin">
+      <div class="cap-chip"><span>📅</span> Calendar management</div>
+      <div class="cap-chip"><span>📧</span> Email inbox management</div>
+      <div class="cap-chip"><span>📊</span> Data entry & reporting</div>
+      <div class="cap-chip"><span>🗂️</span> File & document organization</div>
+      <div class="cap-chip"><span>🔍</span> Research & sourcing</div>
+      <div class="cap-chip"><span>💬</span> Meeting notes & follow-ups</div>
+    </div>
+    <div class="cap-panel" id="tab-social">
+      <div class="cap-chip"><span>📱</span> Social media scheduling</div>
+      <div class="cap-chip"><span>✍️</span> Caption writing & drafts</div>
+      <div class="cap-chip"><span>🎨</span> Canva graphic support</div>
+      <div class="cap-chip"><span>💬</span> Community engagement</div>
+      <div class="cap-chip"><span>📈</span> Analytics tracking</div>
+      <div class="cap-chip"><span>🎬</span> Content repurposing</div>
+    </div>
+    <div class="cap-panel" id="tab-customer">
+      <div class="cap-chip"><span>💬</span> DM & email response</div>
+      <div class="cap-chip"><span>🛒</span> Order inquiries & support</div>
+      <div class="cap-chip"><span>⭐</span> Review management</div>
+      <div class="cap-chip"><span>📋</span> FAQ & helpdesk support</div>
+      <div class="cap-chip"><span>🔁</span> Refund & exchange handling</div>
+      <div class="cap-chip"><span>📣</span> Follow-up sequences</div>
+    </div>
+    <div class="cap-panel" id="tab-ecom">
+      <div class="cap-chip"><span>🛍️</span> Product listing creation</div>
+      <div class="cap-chip"><span>📦</span> Inventory tracking</div>
+      <div class="cap-chip"><span>💰</span> Pricing & competitor research</div>
+      <div class="cap-chip"><span>📸</span> Image editing & uploads</div>
+      <div class="cap-chip"><span>📊</span> Sales reporting</div>
+      <div class="cap-chip"><span>🔗</span> Vendor coordination</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY A VA -->
+<section class="why-va" id="why-va">
+  <div style="text-align:center; max-width:520px; margin:0 auto;" class="reveal">
+    <span class="s-label">Why a VA?</span>
+    <h2 class="s-title">Because you didn't build this<br>to <em>drown in it.</em></h2>
+    <p class="s-body" style="margin:0 auto;">You built something. Now you need the right person beside you so you can actually lead it.</p>
+  </div>
+  <div class="why-grid">
+    <div class="why-card reveal">
+      <div class="why-icon">😮‍💨</div>
+      <h3>Finally Breathe Easy</h3>
+      <p>Imagine your inbox handled, your calendar clear, and your follow-ups done — without you touching any of it. That's the exhale a great VA gives you.</p>
+    </div>
+    <div class="why-card reveal" style="transition-delay:0.1s">
+      <div class="why-icon">🎯</div>
+      <h3>Do What Only You Can Do</h3>
+      <p>Strategy. Relationships. Vision. That's your lane. A VA handles everything else so you can stay in yours — without guilt or overwhelm.</p>
+    </div>
+    <div class="why-card reveal" style="transition-delay:0.2s">
+      <div class="why-icon">📈</div>
+      <h3>Grow Without the Grind</h3>
+      <p>Growth doesn't come from doing more. It comes from doing the right things. The right VA clears the path so your business can actually move.</p>
+    </div>
+  </div>
+  <div class="cost-strip reveal">
+    <div>
+      <div class="cost-title">Smart support. Real savings.</div>
+      <p class="cost-sub">You get a skilled professional at a fraction of what a full-time employee costs — without the overhead, the benefits packages, or the guesswork.</p>
+      <div class="pricing-note">
+        <span class="pn-icon">💡</span>
+        <span class="pn-text">To give you a real number: <strong>most of my clients invest $800–$1,500/month for their VA</strong>, plus a one-time placement fee we discuss together on the call. No hidden costs, no surprises — just clarity upfront.</span>
+      </div>
+    </div>
+    <div class="cost-bars">
+      <div class="cost-row"><span class="cost-lbl">Full-time US Employee</span><div class="bar-wrap"><div class="bar-fill bar-us"></div></div><span class="cost-val">$4–6K/mo</span></div>
+      <div class="cost-row"><span class="cost-lbl">Skilled VA</span><div class="bar-wrap"><div class="bar-fill bar-va"></div></div><span class="cost-val">$800–1.5K/mo</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIKTOK BRIDGE -->
+<section class="tiktok-bridge" id="social">
+  <div class="tb-inner">
+    <div class="reveal-l">
+      <span class="tb-label">You might know me from…</span>
+      <h2 class="tb-title">The VA Girlie<br>on your <em>For You Page.</em></h2>
+      <p class="tb-body">If you have been watching my TikToks about VA life, business systems, and why delegation is the most underrated skill in entrepreneurship — hi, it is me. ♥ Same energy, same honesty, same obsession with helping business owners breathe again. This is where we make it official.</p>
+      <div>
+        <a href="https://tiktok.com/@oreomatchai" target="_blank" class="tb-handle">🎵 @oreomatchai</a>
+        <a href="https://facebook.com/cdvcollections" target="_blank" class="tb-handle">📘 cdvcollections</a>
+      </div>
+    </div>
+    <div class="tb-pillars reveal-r">
+      <div class="tb-pillar"><div class="tb-pillar-icon">🎬</div><div class="tb-pillar-text"><h4>VA Tips and Real Talk</h4><p>What actually makes a great VA hire — and what to watch for</p></div></div>
+      <div class="tb-pillar"><div class="tb-pillar-icon">⚙️</div><div class="tb-pillar-text"><h4>Systems That Actually Work</h4><p>How to delegate without losing your mind or your standards</p></div></div>
+      <div class="tb-pillar"><div class="tb-pillar-icon">💸</div><div class="tb-pillar-text"><h4>The Business of Breathing</h4><p>Why stopping doing everything yourself is the most profitable move you can make</p></div></div>
+      <div class="tb-pillar"><div class="tb-pillar-icon">♥</div><div class="tb-pillar-text"><h4>Behind the Matchmaking</h4><p>Real stories from business owners who found their person — and what changed</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     VA MATCH NETWORK — For VAs Looking to Get Placed
+════════════════════════════════════════════ -->
+<section class="va-roster" id="va-apply">
+  <div class="va-roster-inner">
+
+    <div class="va-roster-head reveal">
+      <span class="var-eyebrow">♥ For the VAs</span>
+      <h2 class="var-title">Think you're someone's<br><em>perfect match?</em></h2>
+      <p class="var-sub">I don't place just any VA. I place the right ones — skilled, reliable, and ready to show up for a business owner who needs them. If that's you, I want to hear from you.</p>
+    </div>
+
+    <div class="va-roster-grid">
+
+      <!-- LEFT — application form -->
+      <div class="reveal-l">
+        <div class="var-apply-card">
+          <div class="var-apply-header">
+            <h3>Apply to Be a Match ♥</h3>
+            <p>Quick intro — I'll reach out when I find your match.</p>
+          </div>
+          <div class="var-apply-body" id="vaApplyForm">
+            <input class="var-input" type="text"  id="vaName"         placeholder="Your full name" />
+            <input class="var-input" type="email" id="vaEmail"        placeholder="Your email address" />
+            <select class="var-select" id="vaSpecialty">
+              <option value="" disabled selected>Your main specialty…</option>
+              <option>Admin & Operations</option>
+              <option>Social Media & Content</option>
+              <option>Customer Support</option>
+              <option>E-Commerce</option>
+              <option>Marketing Support</option>
+              <option>Multiple — I'm a generalist</option>
+            </select>
+            <select class="var-select" id="vaExperience">
+              <option value="" disabled selected>Years of VA experience…</option>
+              <option>Just starting out (under 1 year)</option>
+              <option>1–2 years</option>
+              <option>3–5 years</option>
+              <option>5+ years</option>
+            </select>
+            <select class="var-select" id="vaAvailability">
+              <option value="" disabled selected>Your availability…</option>
+              <option>Full-time (40 hrs/week)</option>
+              <option>Part-time (20 hrs/week)</option>
+              <option>Flexible / project-based</option>
+            </select>
+            <button class="var-apply-btn" onclick="submitVAApplication()">Submit My Match Application ♥</button>
+          </div>
+          <div class="var-apply-success" id="vaApplySuccess">
+            <div class="vas-icon">💌</div>
+            <h4>Application received ♥</h4>
+            <p>I'll review your details and reach out when there's a client who could be your perfect match. Keep an eye on your inbox!</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE — Chai's Facebook video -->
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div class="var-video-wrap">
+          <span class="var-video-label">Watch: What it's really like working as a VA ♥</span>
+          <div class="var-video-frame">
+            <iframe
+              src="https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Freel%2F2712892538885746%2F&show_text=false&width=267&t=0"
+              width="267" height="476"
+              style="border:none;overflow:hidden;border-radius:16px;"
+              scrolling="no" frameborder="0" allowfullscreen="true"
+              allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+            </iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — what makes a Chai-approved VA -->
+      <div class="reveal-r">
+        <span class="var-std-label">What makes a great match ♥</span>
+        <div class="var-standards">
+          <div class="var-std-item">
+            <div class="var-std-icon">💼</div>
+            <div class="var-std-text">
+              <h4>Proven Skills — Not Just a Portfolio</h4>
+              <p>You can show real work, real results, and real experience. I vet for capability, not just credentials.</p>
+            </div>
+          </div>
+          <div class="var-std-item">
+            <div class="var-std-icon">💬</div>
+            <div class="var-std-text">
+              <h4>Clear, Professional Communication</h4>
+              <p>You respond on time, ask the right questions, and keep your client in the loop — always.</p>
+            </div>
+          </div>
+          <div class="var-std-item">
+            <div class="var-std-icon">🎯</div>
+            <div class="var-std-text">
+              <h4>Ownership Mindset</h4>
+              <p>You treat your client's business like it matters — because it does. You're proactive, not reactive.</p>
+            </div>
+          </div>
+          <div class="var-std-item">
+            <div class="var-std-icon">🌱</div>
+            <div class="var-std-text">
+              <h4>Ready to Grow With a Client</h4>
+              <p>The best placements are long-term relationships. I look for VAs who are in it for real, not just a quick gig.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- perks of being a matched VA -->
+        <div class="var-perks" style="margin-top:1rem;">
+          <div class="var-perk">
+            <span class="var-perk-icon">🤝</span>
+            <span class="var-perk-text">Personally placed with vetted clients</span>
+          </div>
+          <div class="var-perk">
+            <span class="var-perk-icon">📣</span>
+            <span class="var-perk-text">Promoted to Chai's client network</span>
+          </div>
+          <div class="var-perk">
+            <span class="var-perk-icon">💡</span>
+            <span class="var-perk-text">Onboarding support & strategy</span>
+          </div>
+          <div class="var-perk">
+            <span class="var-perk-icon">♥</span>
+            <span class="var-perk-text">Part of the VA Match community</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FB COMMUNITY STRIP -->
+    <div class="var-fb-strip reveal">
+      <div class="var-fb-left">
+        <div class="var-fb-icon">👥</div>
+        <div class="var-fb-text">
+          <h4>Join the VA Community on Facebook</h4>
+          <p>Connect with other VAs, get tips, share wins, and stay in Chai's circle — even before you're placed.</p>
+        </div>
+      </div>
+      <a href="https://www.facebook.com/groups/938182001498542" target="_blank" class="var-fb-btn">
+        📘 Join the Group
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 9 — OBJECTIONS: FAQ
+════════════════════════════════════════════ -->
+<section class="faq" id="faq">
+  <div style="text-align:center; max-width:460px; margin:0 auto 1rem;" class="reveal">
+    <span class="s-label">Before You Swipe Right…</span>
+    <h2 class="s-title">Things you're probably <em>wondering.</em></h2>
+  </div>
+  <div class="faq-cols reveal">
+    <div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Do I have to manage the VA myself after the match?</span><div class="faq-icon">+</div></div>
+        <div class="faq-a">I don't just hand you a person and disappear. You'll get a clear onboarding strategy so you know exactly how to delegate, set expectations, and get your VA running without it feeling like another job on your list.</div>
+      </div>
+      <div class="faq-item" style="margin-top:1rem">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>How fast will I get matched?</span><div class="faq-icon">+</div></div>
+        <div class="faq-a">Most clients meet their VA within 72 hours of our discovery call. My match network is already vetted — I'm not starting from scratch, I'm finding your fit within what I've already built.</div>
+      </div>
+      <div class="faq-item" style="margin-top:1rem">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>What if it's not the right fit?</span><div class="faq-icon">+</div></div>
+        <div class="faq-a">Our discovery call is specifically designed to prevent that. I ask the questions most people skip — about your communication style, your pace, your non-negotiables. If something isn't working, I'm here to figure out why and fix it together.</div>
+      </div>
+    </div>
+    <div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>How is this personal rather than a generic placement?</span><div class="faq-icon">+</div></div>
+        <div class="faq-a">I spent years inside a high-growth brand managing real teams and real operations. I use that experience to assess fit — not just skill sets, but how a person communicates, how they handle pressure, and how they'll integrate into the way you specifically work.</div>
+      </div>
+      <div class="faq-item" style="margin-top:1rem">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>What does a VA actually cost?</span><div class="faq-icon">+</div></div>
+        <div class="faq-a">A skilled full-time VA typically runs $800–$1,500/month — significantly less than a US-based employee. My placement and strategy fee is always discussed transparently on our call. No surprises, no fine print. ♥
+          <div class="pricing-note" style="margin-top:0.8rem">
+            <span class="pn-icon">💡</span>
+            <span class="pn-text">Think of it this way: <strong>one month of VA support often costs less than a single hour of your time lost to admin work every day.</strong> The ROI tends to show up fast.</span>
+          </div>
+        </div>
+      </div>
+      <div class="faq-item" style="margin-top:1rem">
+        <div class="faq-q" onclick="toggleFaq(this)"><span>Who do you typically work with?</span><div class="faq-icon">+</div></div>
+        <div class="faq-a">Mostly small business owners — e-commerce, coaches, consultants, service providers, and entrepreneurs doing way too much alone. If you're wearing every hat and feeling it, you're exactly who I'm here for. ♥</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     STEP 10+11 — CTA + RISK REVERSAL
+════════════════════════════════════════════ -->
+<section class="book-cta" id="book">
+  <div class="scarcity-bar"><span class="scarcity-dot"></span><span class="scarcity-text">Limited discovery call spots open this month</span></div>
+  <span class="cta-script">Okay bestie — your match is waiting. ♥</span>
+  <h2 class="cta-h">Stop settling for<br><em>bad hires.</em></h2>
+  <p class="cta-sub">You have been meaning to get help for months. The right VA is already out there — and I know exactly where to find them. Let's spend 30 minutes figuring out your perfect match. I'll take it from there. ♥</p>
+  <div class="cta-proof-strip">
+    <span class="cps-item">♥ Match network, personally curated</span>
+    <span class="cps-sep">·</span>
+    <span class="cps-item">♥ Built inside a $1M+ brand</span>
+    <span class="cps-sep">·</span>
+    <span class="cps-item">♥ Matched within 72 hours</span>
+  </div>
+  <button class="btn-white" onclick="alert('Add your Calendly or TidyCal link here ♥')">Find My Match — Book a Free Call ♥</button>
+  <p class="cta-micro">Free · 30 minutes · No pressure, just chemistry ♥</p>
+
+  <!-- dual CTA for VAs -->
+  <div class="cta-divider">or</div>
+  <button class="btn-be-match" onclick="document.getElementById('va-apply').scrollIntoView({behavior:'smooth'})">Are you a VA? Be a Match ♥</button>
+  <p class="cta-micro" style="margin-top:0.5rem">Join my match network and get placed with amazing clients</p>
+  <div class="risk-row">
+    <span class="risk-item">✓ No commitment required</span>
+    <span class="risk-item">✓ Operational strategy included</span>
+    <span class="risk-item">✓ Matched within 72 hours</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="foot-logo">Chai ♥</div>
+    <div class="foot-tagline">The VA Matchmaker · Less Stress, Better Hires</div>
+  </div>
+  <div class="foot-links">
+    <a href="#quiz">Find My Match</a>
+    <a href="#profiles">VA Types</a>
+    <a href="#process">How It Works</a>
+    <a href="#faq">FAQ</a>
+    <a href="#book">Book a Call</a>
+  </div>
+  <div class="foot-handles">
+    <a href="#" class="handle">@oreomatchai</a>
+    <a href="#" class="handle">cdvcollections</a>
+  </div>
+</footer>
+
+<script>
+// ── SCROLL REVEAL ──
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); obs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el => obs.observe(el));
+
+// ── ENVELOPE LETTER ──
+function openEnvelope() {
+  document.getElementById('envSealed').style.display = 'none';
+  document.getElementById('envHint').style.display   = 'none';
+  const shell  = document.getElementById('envOpenShell');
+  const letter = document.getElementById('envLetter');
+  shell.classList.add('show');
+  setTimeout(() => {
+    letter.classList.add('open');
+    letter.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 350);
+}
+function closeEnvelope() {
+  document.getElementById('envLetter').classList.remove('open');
+  document.getElementById('envOpenShell').classList.remove('show');
+  setTimeout(() => {
+    document.getElementById('envSealed').style.display = 'block';
+    document.getElementById('envHint').style.display   = 'flex';
+    document.getElementById('envContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 300);
+}
+
+// ── CAPABILITY TABS ──
+function switchCap(btn, id) {
+  document.querySelectorAll('.cap-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cap-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+// ── FAQ ──
+function toggleFaq(el) {
+  const item = el.parentElement;
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+// ── VA APPLICATION ──
+function submitVAApplication() {
+  const name         = document.getElementById('vaName').value.trim();
+  const email        = document.getElementById('vaEmail').value.trim();
+  const specialty    = document.getElementById('vaSpecialty').value;
+  const experience   = document.getElementById('vaExperience').value;
+  const availability = document.getElementById('vaAvailability').value;
+
+  if (!name || !email || !email.includes('@') || !specialty || !experience || !availability) {
+    // highlight any empty fields
+    [document.getElementById('vaName'), document.getElementById('vaEmail')].forEach(el => {
+      if (!el.value.trim()) { el.style.borderColor = 'rgba(232,23,138,0.8)'; }
+    });
+    return;
+  }
+  // Wire to your email service / CRM here
+  console.log('VA Application:', { name, email, specialty, experience, availability });
+  document.getElementById('vaApplyForm').style.display = 'none';
+  document.getElementById('vaApplySuccess').style.display = 'block';
+}
+let answers = [];
+const vaTypes = [
+  { icon:'🗂️', type:'The Admin Anchor',   sub:'Your operational backbone', pct:'94%', desc:'You need someone who lifts the entire operational weight off your shoulders. This VA owns your inbox, calendar, and coordination so you can finally come up for air.', skills:['Email Management','Scheduling','Research','Follow-Ups'] },
+  { icon:'✨', type:'The Content Queen',   sub:'Your brand\'s best friend',  pct:'91%', desc:'Your brand deserves to show up consistently and beautifully without you doing it all. This VA keeps your content calendar full, your captions on-brand, and your presence alive.', skills:['Social Media','Content Calendar','Canva','Captions'] },
+  { icon:'💌', type:'The Client Keeper',   sub:'Your relationship manager', pct:'93%', desc:'No lead left behind, no customer feeling ignored. This VA makes your clients feel genuinely cared for — handling DMs, follow-ups, reviews, and inquiries like a pro.', skills:['DM Response','Customer Care','Reviews','Follow-Ups'] },
+  { icon:'🛍️', type:'The Store Operator', sub:'Your e-commerce engine',    pct:'90%', desc:'Your store should run even when you step away. This VA handles listings, inventory, orders, and reporting so your backend stays smooth and scalable.', skills:['Product Listings','Inventory','Order Support','Reporting'] }
+];
+
+function selectOpt(el) {
+  el.closest('.q-options').querySelectorAll('.q-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.closest('.q-step').querySelector('.q-next').classList.add('enabled');
+}
+
+function nextQ(from, to) {
+  if (!document.getElementById('qs'+from).querySelector('.q-opt.selected')) return;
+  document.getElementById('qs'+from).classList.remove('active');
+  document.getElementById('qs'+to).classList.add('active');
+  const pct = (to / 5) * 100;
+  document.getElementById('qpFill').style.width = pct + '%';
+  document.getElementById('stepLabel').textContent = 'Question ' + to + ' of 5';
+  document.getElementById('stepPct').textContent = Math.round(pct) + '%';
+}
+
+function showEmailGate() {
+  const lastStep = document.getElementById('qs5');
+  const sel = lastStep.querySelector('.q-opt.selected');
+  if (!sel) return;
+  const opts = lastStep.querySelectorAll('.q-opt');
+  window._pendingResultIdx = Array.from(opts).indexOf(sel);
+  lastStep.classList.remove('active');
+  document.querySelector('.quiz-progress').style.display = 'none';
+  document.getElementById('quizEmailGate').style.display = 'block';
+  document.getElementById('qpFill').style.width = '100%';
+  document.getElementById('stepLabel').textContent = 'Almost there!';
+  document.getElementById('stepPct').textContent = '100%';
+}
+
+function submitGate() {
+  const email = document.getElementById('gateEmail').value.trim();
+  const name  = document.getElementById('gateName').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('gateEmail').style.borderColor = 'var(--hot)';
+    document.getElementById('gateEmail').placeholder = 'Please enter a valid email ♥';
+    return;
+  }
+  // Wire to your email service here (Flodesk, Mailchimp, etc.)
+  console.log('Lead captured:', name, email, vaTypes[window._pendingResultIdx||0].type);
+  document.getElementById('quizEmailGate').style.display = 'none';
+  showResult(window._pendingResultIdx || 0);
+}
+
+function showResult(idx) {
+  const type = vaTypes[idx] || vaTypes[0];
+  document.getElementById('quizResult').style.display = 'block';
+  document.querySelector('.quiz-body').style.display = 'none';
+  document.getElementById('resultPct').textContent  = type.pct;
+  document.getElementById('resultIcon').textContent  = type.icon;
+  document.getElementById('resultType').textContent  = type.type;
+  document.getElementById('resultSub').textContent   = type.sub;
+  document.getElementById('resultDesc').textContent  = type.desc;
+  document.getElementById('resultSkills').innerHTML  = type.skills.map(s => `<span class="qr-skill">${s}</span>`).join('');
+}
+
+function retakeQuiz() {
+  window._pendingResultIdx = 0;
+  document.getElementById('quizResult').style.display = 'none';
+  document.getElementById('quizEmailGate').style.display = 'none';
+  document.querySelector('.quiz-body').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.querySelectorAll('.q-step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.q-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.q-next').forEach(b => b.classList.remove('enabled'));
+  document.getElementById('qs1').classList.add('active');
+  document.getElementById('qpFill').style.width = '20%';
+  document.getElementById('stepLabel').textContent = 'Question 1 of 5';
+  document.getElementById('stepPct').textContent = '20%';
+  document.getElementById('gateName').value = '';
+  document.getElementById('gateEmail').value = '';
+}
+</script>
+</body>
+</html>
